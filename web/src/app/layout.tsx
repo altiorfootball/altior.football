@@ -44,6 +44,9 @@ export default function RootLayout({
               <Link href="/profil" className="hover:text-pitch">
                 Mein Profil
               </Link>
+              <Link href="/admin" className="hover:text-pitch">
+                Verwaltung
+              </Link>
               <Link
                 href="/registrieren"
                 className="border border-pitch px-4 py-1.5 text-pitch"

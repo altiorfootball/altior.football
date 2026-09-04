@@ -43,7 +43,7 @@ export default async function ProfilPage({
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("first_name, last_name, email")
+    .select("first_name, last_name, email, role")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -58,6 +58,12 @@ export default async function ProfilPage({
   const name = [profile?.first_name, profile?.last_name]
     .filter(Boolean)
     .join(" ");
+
+  // Administratoren brauchen kein Spielerprofil — sie trainieren nicht,
+  // sie verwalten. Ohne diese Weiche hängen sie im Registrierungsformular fest.
+  if (!player && profile?.role === "admin") {
+    redirect("/admin");
+  }
 
   // Noch kein Spielerprofil: zweiter Schritt der Registrierung.
   if (!player) {
