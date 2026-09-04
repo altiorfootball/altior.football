@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+/* ===========================================================================
+   ALTIOR — Gestaltungswerte
+   Grundlage: docs/CORPORATE-DESIGN.md
+
+   Alles Gestalterische steht hier und nur hier. Ein anderer Grünton, eine
+   andere Schrift oder rundere Ecken sind eine Änderung an dieser Datei —
+   nirgendwo sonst. Website und App lesen dieselben Werte.
+   =========================================================================== */
+
+:root {
+  /* Farbe — ein Farbton in zwei Werten:
+     Grau ist, wo du warst. Grün ist, wo du jetzt bist.
+     Dasselbe System trägt später Fortschrittsbalken, Kontingentanzeigen
+     und Assessment-Diagramme. */
+  --pitch: #1f6b47;        /* Akzent — der aktuelle Wert */
+  --pitch-deep: #0f4e33;   /* Akzent für kleinen Text auf hellem Grund */
+  --before: #a9bdb0;       /* der Ausgangswert, inaktive Zustände */
+
+  --ink: #121a16;          /* Text und Zeichen — Schwarz mit Grünstich */
+  --ink-soft: #4a5a50;     /* Sekundärtext */
+  --paper: #f2f4f1;        /* Grundfläche — kühles Weiß */
+  --surface: #ffffff;      /* Karten, Panels */
+  --line: #d6ddd6;         /* Trennlinien */
+}
+
+/* Dunkler Modus: nur die Farbwerte werden getauscht, sonst nichts. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --pitch: #4fbf87;
+    --pitch-deep: #7ad3a6;
+    --before: #4a5a50;
+    --ink: #e7ede8;
+    --ink-soft: #95a69b;
+    --paper: #0e1411;
+    --surface: #151d19;
+    --line: #233029;
+  }
+}
+
+@theme inline {
+  --color-pitch: var(--pitch);
+  --color-pitch-deep: var(--pitch-deep);
+  --color-before: var(--before);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-line: var(--line);
+
+  --font-sans: var(--font-plex-sans);
+  --font-mono: var(--font-plex-mono);
+
+  /* Scharfe Kanten, minimale Rundung: die Marke ist ein Messinstrument,
+     kein Lifestyle-Produkt. */
+  --radius-brand: 2px;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Ziffern in Tabellen und Zählern stehen untereinander. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Mikro-Label: Versalien, weite Laufweite, Mono. */
+.eyebrow {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+:focus-visible {
+  outline: 2px solid var(--pitch);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

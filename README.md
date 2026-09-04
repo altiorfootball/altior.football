@@ -32,7 +32,19 @@ manuell eingreift.
 ```
 docs/                  Fachliche Grundlagen — Product Master, Marke, Datenmodell
 supabase/migrations/   Datenbankschema als versionierte Migrationen
+web/                   Next.js-Anwendung
+  src/app/             Seiten
+  src/components/      Bausteine, u. a. die Bildmarke
+  src/lib/brand.ts     Markentexte und Regeln an einer Stelle
+  src/app/globals.css  Gestaltungswerte — Farbe, Schrift, Form
 ```
+
+### Gestaltung ändern
+
+Farben, Schrift und Rundungen stehen ausschließlich in `web/src/app/globals.css`,
+die Bildmarke ausschließlich in `web/src/components/Mark.tsx`, die Markentexte in
+`web/src/lib/brand.ts`. Ein anderer Grünton oder ein neues Zeichen sind damit eine
+Änderung an einer Datei — Website und App lesen dieselben Werte.
 
 ### Die Dokumente
 
