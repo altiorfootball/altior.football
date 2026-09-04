@@ -41,6 +41,15 @@ export default function RootLayout({
               <Link href="/termine" className="hover:text-pitch">
                 Termine
               </Link>
+              <Link href="/profil" className="hover:text-pitch">
+                Mein Profil
+              </Link>
+              <Link
+                href="/registrieren"
+                className="border border-pitch px-4 py-1.5 text-pitch"
+              >
+                Registrieren
+              </Link>
             </nav>
           </div>
         </header>
