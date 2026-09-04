@@ -1,0 +1,34 @@
+# Abhängigkeiten
+node_modules/
+.pnp
+.pnp.js
+
+# Build
+.next/
+out/
+build/
+dist/
+
+# Umgebungsvariablen — enthalten Schlüssel, gehören nie ins Repo
+.env
+.env*.local
+.env.production
+
+# Supabase lokal
+supabase/.branches
+supabase/.temp
+.branches
+
+# Betriebssystem
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+npm-debug.log*
