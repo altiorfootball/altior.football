@@ -258,3 +258,34 @@ Zwei Postfächer angelegt. **Festlegung:**
 **Konsistenzkette:** `altior.football` · `@altior.football` · `steffen@altior.football`
 
 **Hinweis für Plan-Woche 6:** Die DNS-Einträge für Resend (System-Mails: Buchungsbestätigung, Storno, Passwort-Reset) kommen auf **`altior.football`**, nicht auf die `.de`-Domain.
+
+### 04.09.2026 — IONOS-Konditionen geprüft
+
+**Jetzt gezahlt: 29,80 €** (PayPal), davon 4,76 € Umsatzsteuer.
+
+| Position | Aktionspreis | Regulär ab | Kosten/Jahr regulär |
+|---|---|---|---|
+| `altior.football` | 2,40 €/Monat für 12 Monate | **4,00 €/Monat** | **48,00 €** |
+| `altiorfootball.de` | 0,08 €/Monat für 12 Monate | **1,30 €/Monat** | **15,60 €** |
+| Mail Basic 5 | 0 € für **1 Monat** | **2,50 €/Monat** | **30,00 €** |
+
+**Kostenverlauf:**
+
+| | Betrag |
+|---|---|
+| Jahr 1 gesamt (inkl. Postfach ab Monat 2) | ca. **57 €** |
+| **Ab Jahr 2** | ca. **94 €/Jahr** ≈ 7,80 €/Monat |
+
+**Beobachtungen:**
+
+- Die Erstjahrespreise waren tatsächlich Aktionspreise — die Kosten steigen ab Jahr 2 auf etwa das Doppelte.
+- **`.football` ist der teuerste Posten** mit 48 € gegenüber 15,60 € für `.de`, also mehr als das Dreifache. Weiterhin vertretbar, weil sie die genannte und gedruckte Adresse ist — aber es ist der Posten, den man streichen würde, wenn gespart werden muss.
+- **Das Postfach ist nur den ersten Monat kostenlos**, danach 2,50 €/Monat. Ab Oktober 2026 läuft es mit.
+- Alles verlängert sich automatisch. Mail ist monatlich kündbar, die Domains laufen jährlich.
+
+**Zu erledigen:**
+
+- Erinnerung **August 2027** setzen, vier Wochen vor der Domainverlängerung
+- **Rechnung aufbewahren.** Die 29,80 € sind Vorgründungskosten und als Betriebsausgabe absetzbar, auch wenn das Gewerbe erst in Plan-Woche 21 angemeldet wird. Gehört ins Erstgespräch mit dem Steuerbüro.
+- ⚠️ **Als Kleinunternehmer ist die enthaltene Umsatzsteuer echter Aufwand**, kein durchlaufender Posten — die Vorsteuer lässt sich nicht ziehen. Erst mit dem Wechsel in die Regelbesteuerung (P5) ändert sich das.
+- Zahlung lief über PayPal. Ab Geschäftskonto (Woche 21) besser darüber, damit die Buchhaltung eine Spur hat.

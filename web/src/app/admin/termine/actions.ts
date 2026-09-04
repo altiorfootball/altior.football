@@ -39,95 +39,49 @@ export async function createSessions(
   if (!from || !to || !time || !location) {
     return { error: "Zeitraum, Uhrzeit und Ort sind nötig." };
   }
-  if (weekdays.length === 0) {
-    return { error: "Wähle mindestens einen Wochentag." };
+  // Die Zeitrechnung liegt bewusst in der Datenbank: Die Uhrzeit ist als
+  // deutsche Ortszeit gemeint. In JavaScript aus der Serverzeit gebaut, haenge
+  // das Ergebnis davon ab, in welcher Zone der Server laeuft — auf Vercel ist
+  // das UTC. Postgres rechnet ausserdem die Zeitumstellung korrekt um.
+  const { data, error } = await supabase
+    .rpc("create_training_series", {
+      p_from: from,
+      p_to: to,
+      p_time: time,
+      p_weekdays: weekdays.map(Number),
+      p_location: location,
+      p_duration: duration,
+      p_field: fieldCapacity,
+      p_gk: gkCapacity,
+    })
+    .single<{ angelegt: number; uebersprungen: number }>();
+
+  if (error) {
+    const code = error.message.match(/ALTIOR_([A-Z_]+)/)?.[1];
+    switch (code) {
+      case "BAD_RANGE":
+        return { error: "Das Enddatum liegt vor dem Startdatum." };
+      case "RANGE_TOO_LONG":
+        return { error: "Bitte lege hoechstens ein Jahr auf einmal an." };
+      case "NO_WEEKDAY":
+        return { error: "Waehle mindestens einen Wochentag." };
+      case "FORBIDDEN":
+        return { error: "Dafuer fehlen dir die Rechte." };
+      default:
+        return { error: "Die Termine konnten nicht angelegt werden." };
+    }
   }
 
-  const start = new Date(`${from}T00:00:00`);
-  const end = new Date(`${to}T00:00:00`);
-  if (end < start) {
-    return { error: "Das Enddatum liegt vor dem Startdatum." };
-  }
-  const days = Math.round((end.getTime() - start.getTime()) / 86_400_000);
-  if (days > 366) {
-    return { error: "Bitte lege höchstens ein Jahr auf einmal an." };
-  }
-
-  const { data: price } = await supabase
-    .from("prices")
-    .select("id, products!inner(key)")
-    .eq("products.key", "training")
-    .eq("audience", "standard")
-    .is("valid_to", null)
-    .limit(1)
-    .maybeSingle();
-
-  const wanted = new Set(weekdays.map(Number));
-  const rows: {
-    starts_at: string;
-    duration_minutes: number;
-    location: string;
-    field_capacity: number;
-    gk_capacity: number;
-    price_id: string | null;
-  }[] = [];
-
-  for (let i = 0; i <= days; i++) {
-    const day = new Date(start);
-    day.setDate(day.getDate() + i);
-    if (!wanted.has(day.getDay())) continue;
-
-    const [hh, mm] = time.split(":").map(Number);
-    // Termine werden in deutscher Ortszeit gedacht und als Zeitpunkt
-    // gespeichert — sonst verschiebt sich alles bei der Zeitumstellung.
-    const local = new Date(day);
-    local.setHours(hh, mm, 0, 0);
-
-    rows.push({
-      starts_at: local.toISOString(),
-      duration_minutes: duration,
-      location,
-      field_capacity: fieldCapacity,
-      gk_capacity: gkCapacity,
-      price_id: price?.id ?? null,
-    });
-  }
-
-  if (rows.length === 0) {
-    return { error: "Im gewählten Zeitraum liegt kein passender Wochentag." };
-  }
-
-  // Bereits belegte Zeitpunkte auslassen. Zwei Trainings zur selben Zeit kann
-  // niemand leiten — und ohne diese Prüfung entstünden Doppel, sobald eine
-  // Serie über bestehende Termine gelegt wird.
-  const { data: existing } = await supabase
-    .from("training_sessions")
-    .select("starts_at")
-    .gte("starts_at", rows[0].starts_at)
-    .lte("starts_at", rows[rows.length - 1].starts_at)
-    .neq("status", "cancelled");
-
-  const taken = new Set(
-    (existing ?? []).map((e) => new Date(e.starts_at).getTime())
-  );
-  const fresh = rows.filter((r) => !taken.has(new Date(r.starts_at).getTime()));
-  const skipped = rows.length - fresh.length;
-
-  if (fresh.length === 0) {
+  if (!data || data.angelegt === 0) {
     return {
       error:
-        "Zu allen diesen Zeitpunkten gibt es bereits Termine. Es wurde nichts angelegt.",
+        "Im gewaehlten Zeitraum wurde nichts angelegt — entweder liegt dort kein passender Wochentag oder es gibt bereits Termine zu diesen Zeiten.",
     };
-  }
-
-  const { error } = await supabase.from("training_sessions").insert(fresh);
-  if (error) {
-    return { error: "Die Termine konnten nicht angelegt werden." };
   }
 
   revalidatePath("/admin/termine");
   revalidatePath("/termine");
-  return { created: fresh.length, skipped };
+  return { created: data.angelegt, skipped: data.uebersprungen };
 }
 
 export async function cancelSession(formData: FormData) {
