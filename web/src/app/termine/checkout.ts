@@ -130,7 +130,9 @@ export async function checkoutSession(
         metadata: { altior_payment_id: reservation.payment_id },
       },
       success_url: `${siteUrl()}/termine?bezahlt=1`,
-      cancel_url: `${siteUrl()}/termine?abgebrochen=1`,
+      // Der Abbruch fuehrt ueber einen eigenen Rueckweg, der die Reservierung
+      // aufloest. Stripe meldet einen Abbruch nicht von sich aus.
+      cancel_url: `${siteUrl()}/api/checkout/abbruch?zahlung=${reservation.payment_id}`,
     });
     checkoutUrl = checkout.url;
   } catch (e) {
