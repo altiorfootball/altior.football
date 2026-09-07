@@ -33,9 +33,22 @@ export default function KuendigungPage() {
           </span>
           <p className="text-sm text-ink-soft">
             Dieser Zeitpunkt ist für die Wirksamkeit deiner Kündigung
-            maßgeblich. Du bekommst die Bestätigung zusätzlich per E-Mail.
+            maßgeblich.
           </p>
         </div>
+        {state.confirmationSent ? (
+          <p className="text-sm text-ink-soft">
+            Die Bestätigung ist zusätzlich an deine E-Mail-Adresse
+            unterwegs.
+          </p>
+        ) : (
+          <p className="border-l-2 border-pitch bg-surface px-4 py-3 text-sm">
+            Die Bestätigung per E-Mail konnte gerade nicht zugestellt werden.
+            Deine Kündigung ist trotzdem wirksam — der oben genannte Zeitpunkt
+            zählt. Wir melden uns.
+          </p>
+        )}
+
         <p className="max-w-[62ch] text-ink-soft">
           Eine Mitgliedschaft endet zum Ende des laufenden Monats. Bis dahin
           kannst du dein Kontingent voll nutzen — der Monat ist bezahlt. Beim

@@ -3,6 +3,41 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { adminDb } from "@/lib/checkout";
+import {
+  mailBookingConfirmed,
+  mailBookingCancelled,
+} from "@/lib/email/templates";
+
+/**
+ * Holt Empfaenger und Termindaten fuer die Bestaetigungsmail.
+ *
+ * Ueber den vollen Zugriff, weil die Mail auch dann rausgehen soll, wenn der
+ * Zeilenschutz einzelne Felder verbergen wuerde.
+ */
+async function bookingMailData(bookingId: string) {
+  const { data } = await adminDb()
+    .from("training_bookings")
+    .select(
+      "training_sessions(starts_at, location), players(profiles(email, first_name))"
+    )
+    .eq("id", bookingId)
+    .single<{
+      training_sessions: { starts_at: string; location: string } | null;
+      players: { profiles: { email: string; first_name: string | null } | null } | null;
+    }>();
+
+  const email = data?.players?.profiles?.email;
+  const session = data?.training_sessions;
+  if (!email || !session) return null;
+
+  return {
+    email,
+    firstName: data?.players?.profiles?.first_name ?? null,
+    startsAt: session.starts_at,
+    location: session.location,
+  };
+}
 
 export type BookingResult = { error?: string; ok?: string };
 
@@ -49,11 +84,27 @@ export async function bookSession(
   const supabase = await createClient();
   const sessionId = String(formData.get("session_id") ?? "");
 
-  const { error } = await supabase.rpc("book_training_session", {
-    p_session_id: sessionId,
-  });
+  const { data: bookingId, error } = await supabase.rpc(
+    "book_training_session",
+    { p_session_id: sessionId }
+  );
 
   if (error) return { error: translate(error.message) };
+
+  // Der Versand darf die Buchung nicht kippen: Wer gebucht hat, ist gebucht,
+  // auch wenn die Bestaetigung haengen bleibt.
+  if (bookingId) {
+    const m = await bookingMailData(bookingId as string);
+    if (m) {
+      await mailBookingConfirmed({
+        to: m.email,
+        firstName: m.firstName,
+        startsAt: m.startsAt,
+        location: m.location,
+        paid: false,
+      });
+    }
+  }
 
   revalidatePath("/termine");
   return { ok: "Gebucht. Du bekommst gleich eine Bestätigung." };
@@ -66,11 +117,24 @@ export async function cancelBooking(
   const supabase = await createClient();
   const bookingId = String(formData.get("booking_id") ?? "");
 
+  // Termindaten vor dem Stornieren holen — danach ist die Zuordnung
+  // umstaendlicher.
+  const mailData = await bookingMailData(bookingId);
+
   const { data, error } = await supabase.rpc("cancel_training_booking", {
     p_booking_id: bookingId,
   });
 
   if (error) return { error: translate(error.message) };
+
+  if (mailData) {
+    await mailBookingCancelled({
+      to: mailData.email,
+      firstName: mailData.firstName,
+      startsAt: mailData.startsAt,
+      inTime: data === "cancelled_in_time",
+    });
+  }
 
   revalidatePath("/termine");
 

@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 import { getStripe } from "@/lib/stripe";
+import {
+  mailBookingConfirmed,
+  mailMembershipStarted,
+} from "@/lib/email/templates";
+import { formatPrice } from "@/lib/brand";
 
 /**
  * Nimmt Stripes Rückmeldungen entgegen.
@@ -77,6 +82,36 @@ export async function POST(request: Request) {
                   : (session.subscription?.id ?? null),
             });
             if (error) throw new Error(error.message);
+
+            const { data: info } = await db
+              .from("memberships")
+              .select(
+                "membership_plans!memberships_plan_id_fkey(name, trainings_per_month, products(prices(amount_cents))), players(profiles(email))"
+              )
+              .eq("player_id", playerId)
+              .eq("status", "active")
+              .maybeSingle<{
+                membership_plans: {
+                  name: string;
+                  trainings_per_month: number;
+                  products: { prices: { amount_cents: number }[] } | null;
+                } | null;
+                players: { profiles: { email: string } | null } | null;
+              }>();
+
+            const email = info?.players?.profiles?.email;
+            const cents = info?.membership_plans?.products?.prices?.[0]?.amount_cents;
+
+            // Der Versand darf die Mitgliedschaft nicht kippen: Wer bezahlt
+            // hat, ist Mitglied, auch wenn die Bestaetigung haengen bleibt.
+            if (email && info?.membership_plans) {
+              await mailMembershipStarted({
+                to: email,
+                planName: info.membership_plans.name,
+                priceLabel: cents ? formatPrice(cents) : "",
+                trainings: info.membership_plans.trainings_per_month,
+              });
+            }
           }
           break;
         }
@@ -92,6 +127,32 @@ export async function POST(request: Request) {
                 : (session.payment_intent?.id ?? null),
           });
           if (error) throw new Error(error.message);
+
+          const { data: b } = await db
+            .from("training_bookings")
+            .select(
+              "training_sessions(starts_at, location), players(profiles(email, first_name)), payments(amount_cents)"
+            )
+            .eq("payment_id", paymentId)
+            .maybeSingle<{
+              training_sessions: { starts_at: string; location: string } | null;
+              players: { profiles: { email: string; first_name: string | null } | null } | null;
+              payments: { amount_cents: number } | null;
+            }>();
+
+          const to = b?.players?.profiles?.email;
+          if (to && b?.training_sessions) {
+            await mailBookingConfirmed({
+              to,
+              firstName: b.players?.profiles?.first_name ?? null,
+              startsAt: b.training_sessions.starts_at,
+              location: b.training_sessions.location,
+              paid: true,
+              amountLabel: b.payments
+                ? formatPrice(b.payments.amount_cents)
+                : undefined,
+            });
+          }
         }
         break;
       }
