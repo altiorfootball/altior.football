@@ -41,6 +41,9 @@ export default function RootLayout({
               <Link href="/termine" className="hover:text-pitch">
                 Termine
               </Link>
+              <Link href="/mitgliedschaft" className="hover:text-pitch">
+                Mitgliedschaft
+              </Link>
               <Link href="/profil" className="hover:text-pitch">
                 Mein Profil
               </Link>
@@ -67,8 +70,15 @@ export default function RootLayout({
                 {brand.name} · {brand.city}
               </span>
             </div>
-            {/* Übersetzt den lateinischen Namen — kein zweiter Claim. */}
-            <span className="eyebrow">{brand.nameGloss}</span>
+            <div className="flex flex-wrap items-center gap-5">
+              {/* Gesetzlich vorgeschrieben (§ 312k BGB): ständig erreichbar,
+                  ohne Anmeldung. */}
+              <Link href="/kuendigung" className="text-sm text-ink-soft underline">
+                Verträge hier kündigen
+              </Link>
+              {/* Übersetzt den lateinischen Namen — kein zweiter Claim. */}
+              <span className="eyebrow">{brand.nameGloss}</span>
+            </div>
           </div>
         </footer>
       </body>

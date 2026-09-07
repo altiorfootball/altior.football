@@ -19,6 +19,9 @@ export default async function AdminLayout({
           <Link href="/admin/termine" className="hover:text-pitch">
             Termine
           </Link>
+          <Link href="/admin/mitglieder" className="hover:text-pitch">
+            Mitglieder
+          </Link>
         </nav>
       </div>
       {children}
