@@ -1,12 +1,13 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import {
   bookSession,
   cancelBooking,
   joinWaitlist,
   type BookingResult,
 } from "./actions";
+import { checkoutSession, type CheckoutResult } from "./checkout";
 
 const buttonBase =
   "border px-5 py-2 text-sm font-medium disabled:cursor-not-allowed";
@@ -77,6 +78,45 @@ export function CancelButton({
           ? "kostenfrei stornierbar"
           : "Frist abgelaufen — Kontingent verfällt"}
       </span>
+      <Feedback state={state} />
+    </div>
+  );
+}
+
+/**
+ * Kostenpflichtig buchen — wenn kein Kontingent mehr da ist.
+ *
+ * Der Preis steht auf dem Knopf. Wer klickt, soll wissen, dass jetzt
+ * bezahlt wird und nicht ein Guthaben verbraucht.
+ */
+export function PayButton({
+  sessionId,
+  price,
+}: {
+  sessionId: string;
+  price: string;
+}) {
+  const [state, action, pending] = useActionState<CheckoutResult, FormData>(
+    checkoutSession,
+    {}
+  );
+
+  // Die Bezahlseite liegt bei Stripe, also auf einer fremden Adresse. Der
+  // Browser muss selbst dorthin wechseln.
+  useEffect(() => {
+    if (state.url) window.location.href = state.url;
+  }, [state.url]);
+
+  const busy = pending || !!state.url;
+
+  return (
+    <div className="flex flex-col items-end gap-2">
+      <form action={action}>
+        <input type="hidden" name="session_id" value={sessionId} />
+        <button type="submit" className={primary} disabled={busy}>
+          {busy ? "Weiter zur Zahlung…" : `Für ${price} buchen`}
+        </button>
+      </form>
       <Feedback state={state} />
     </div>
   );

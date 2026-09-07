@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice } from "@/lib/brand";
 import { PlanSwitcher, CancelMembership } from "./MembershipActions";
+import { SubscribeButton } from "./SubscribeButton";
 
 export const metadata = { title: "Mitgliedschaft" };
 export const dynamic = "force-dynamic";
@@ -72,9 +73,12 @@ export default async function MitgliedschaftPage({
     wechsel?: string;
     gekuendigt?: string;
     fehler?: string;
+    abgeschlossen?: string;
+    abgebrochen?: string;
   }>;
 }) {
-  const { wechsel, gekuendigt, fehler } = await searchParams;
+  const { wechsel, gekuendigt, fehler, abgeschlossen, abgebrochen } =
+    await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
@@ -131,6 +135,19 @@ export default async function MitgliedschaftPage({
           Deine Mitgliedschaft
         </h1>
       </header>
+
+      {abgeschlossen ? (
+        <p role="status" className="border-l-2 border-pitch bg-surface px-4 py-3 text-sm">
+          Mitgliedschaft abgeschlossen. Dein Kontingent für diesen Monat steht
+          bereit.
+        </p>
+      ) : null}
+
+      {abgebrochen ? (
+        <p role="status" className="border-l-2 border-line bg-surface px-4 py-3 text-sm">
+          Abgebrochen — es wurde nichts abgebucht.
+        </p>
+      ) : null}
 
       {wechsel ? (
         <p role="status" className="border-l-2 border-pitch bg-surface px-4 py-3 text-sm">
@@ -190,14 +207,19 @@ export default async function MitgliedschaftPage({
                       begrenzt auf {p.max_seats} Plätze
                     </span>
                   ) : null}
+                  {cents ? (
+                    <div className="mt-1">
+                      <SubscribeButton plan={p.key} price={formatPrice(cents)} />
+                    </div>
+                  ) : null}
                 </div>
               );
             })}
           </div>
 
           <p className="text-sm text-ink-soft">
-            Buchbar, sobald die Zahlung eingerichtet ist. Bis dahin melde dich
-            unter{" "}
+            Monatlich kündbar, ohne Frist. Zahlung per Lastschrift oder Karte.
+            Fragen? Schreib an{" "}
             <a href="mailto:kontakt@altior.football" className="text-pitch underline">
               kontakt@altior.football
             </a>

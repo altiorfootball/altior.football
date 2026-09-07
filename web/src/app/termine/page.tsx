@@ -1,7 +1,12 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { brand, capacity, deadlines, formatPrice } from "@/lib/brand";
-import { BookButton, CancelButton, WaitlistButton } from "./SessionActions";
+import {
+  BookButton,
+  CancelButton,
+  PayButton,
+  WaitlistButton,
+} from "./SessionActions";
 
 export const metadata = { title: "Nächste Termine" };
 
@@ -83,9 +88,13 @@ function Slots({
 export default async function TerminePage({
   searchParams,
 }: {
-  searchParams: Promise<{ storno?: string }>;
+  searchParams: Promise<{
+    storno?: string;
+    bezahlt?: string;
+    abgebrochen?: string;
+  }>;
 }) {
-  const { storno } = await searchParams;
+  const { storno, bezahlt, abgebrochen } = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
@@ -159,6 +168,8 @@ export default async function TerminePage({
 
   const sessions = data ?? [];
   const isKeeper = player?.player_type === "goalkeeper";
+  // Ohne verbleibendes Kontingent wird die Buchung kostenpflichtig.
+  const quotaLeft = quota ? quota.total - quota.used : 0;
 
   return (
     <div className="flex flex-col gap-10">
@@ -174,6 +185,19 @@ export default async function TerminePage({
           {deadlines.freeCancellationHoursBefore} Stunden vorher.
         </p>
       </header>
+
+      {bezahlt ? (
+        <p role="status" className="border-l-2 border-pitch bg-surface px-4 py-3 text-sm">
+          Bezahlt und gebucht. Du bekommst gleich eine Bestätigung.
+        </p>
+      ) : null}
+
+      {abgebrochen ? (
+        <p role="status" className="border-l-2 border-line bg-surface px-4 py-3 text-sm">
+          Bezahlung abgebrochen — es wurde nichts abgebucht. Dein Platz ist
+          wieder frei.
+        </p>
+      ) : null}
 
       {storno ? (
         <p
@@ -297,7 +321,16 @@ export default async function TerminePage({
                       Buchungsschluss vorbei
                     </span>
                   ) : mySlotFree ? (
-                    <BookButton sessionId={s.id} />
+                    quotaLeft > 0 ? (
+                      <BookButton sessionId={s.id} />
+                    ) : (
+                      <PayButton
+                        sessionId={s.id}
+                        price={
+                          s.prices ? formatPrice(s.prices.amount_cents) : "35 €"
+                        }
+                      />
+                    )
                   ) : waitlisted.has(s.id) ? (
                     <span className="text-sm text-ink-soft">
                       Auf der Warteliste

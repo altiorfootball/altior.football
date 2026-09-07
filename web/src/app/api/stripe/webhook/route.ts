@@ -62,15 +62,36 @@ export async function POST(request: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object;
+
+        if (session.metadata?.altior_kind === "membership") {
+          // Abo bezahlt: Mitgliedschaft anlegen und Kontingent bereitstellen.
+          const playerId = session.metadata.altior_player_id;
+          const plan = session.metadata.altior_plan;
+          if (playerId && plan) {
+            const { error } = await db.rpc("grant_membership_from_stripe", {
+              p_player_id: playerId,
+              p_plan: plan,
+              p_subscription:
+                typeof session.subscription === "string"
+                  ? session.subscription
+                  : (session.subscription?.id ?? null),
+            });
+            if (error) throw new Error(error.message);
+          }
+          break;
+        }
+
+        // Einzelbuchung bezahlt: aus der Reservierung wird eine Buchung.
         const paymentId = session.metadata?.altior_payment_id;
         if (paymentId) {
-          await db.rpc("confirm_reserved_booking", {
+          const { error } = await db.rpc("confirm_reserved_booking", {
             p_payment_id: paymentId,
             p_intent:
               typeof session.payment_intent === "string"
                 ? session.payment_intent
                 : (session.payment_intent?.id ?? null),
           });
+          if (error) throw new Error(error.message);
         }
         break;
       }
