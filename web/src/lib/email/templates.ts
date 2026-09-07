@@ -71,7 +71,7 @@ export function mailBookingConfirmed(opts: {
   blocks.push(
     {
       kind: "text",
-      content: `Es trainieren höchstens ${capacity.field} Feldspieler und ${capacity.goalkeeper} Torhüter. Bring Schienbeinschoner und etwas zu trinken mit.`,
+      content: `Es trainieren höchstens ${capacity.field} Feldspieler und ${capacity.goalkeeper} Torhüter. Bring etwas zu trinken mit.`,
     },
     {
       kind: "note",
